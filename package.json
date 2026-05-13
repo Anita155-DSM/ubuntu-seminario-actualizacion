@@ -1,0 +1,9 @@
+{
+  "name": "ubuntu-seminario-actualizacion",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node backend-ubunto.js"
+  }
+}
