@@ -1,12 +1,13 @@
 import http from 'node:http';
 import { URL } from 'node:url';
 import mysql from 'mysql2/promise';
-import { configDotenv } from 'dotenv';
+import dotenv from 'dotenv';
+dotenv.config()
 
 const HOST = process.env.BACKEND_HOST || '0.0.0.0';
 const PORT = 3454;
 const DB_CONFIG = {
-	host: process.env.DB_HOST || '10.0.2.15',
+	host: process.env.DB_HOST || '10.0.2.2',
 	port: Number(process.env.DB_PORT || 3306),
 	user: process.env.DB_USER || 'usuario_consulta',
 	password: process.env.DB_PASSWORD || '',
