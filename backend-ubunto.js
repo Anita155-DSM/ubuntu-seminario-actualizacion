@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { URL } from 'node:url';
 import mysql from 'mysql2/promise';
+import { configDotenv } from 'dotenv';
 
 const HOST = process.env.BACKEND_HOST || '0.0.0.0';
 const PORT = 3454;
