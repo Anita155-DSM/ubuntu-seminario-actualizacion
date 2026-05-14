@@ -7,7 +7,7 @@ dotenv.config()
 const HOST = process.env.BACKEND_HOST || '0.0.0.0';
 const PORT = 3454;
 const DB_CONFIG = {
-	host: process.env.DB_HOST || '10.0.2.2',
+	host: process.env.DB_HOST || '10.0.2.15',
 	port: Number(process.env.DB_PORT || 3306),
 	user: process.env.DB_USER || 'usuario_consulta',
 	password: process.env.DB_PASSWORD || '',
