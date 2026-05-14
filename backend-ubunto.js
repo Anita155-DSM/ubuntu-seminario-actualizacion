@@ -1,10 +1,21 @@
 import http from 'node:http';
 import { URL } from 'node:url';
+import mysql from 'mysql2/promise';
 
-const HOST = '10.0.2.15';
+const HOST = process.env.BACKEND_HOST || '0.0.0.0';
 const PORT = 3454;
+const DB_CONFIG = {
+	host: process.env.DB_HOST || '10.0.2.15',
+	port: Number(process.env.DB_PORT || 3306),
+	user: process.env.DB_USER || 'usuario_consulta',
+	password: process.env.DB_PASSWORD || '',
+	database: process.env.DB_NAME || 'alumnos',
+	waitForConnections: true,
+	connectionLimit: 10,
+	namedPlaceholders: false,
+};
 
-const alumnos = [];
+const pool = mysql.createPool(DB_CONFIG);
 
 function normalizeText(value) {
 	return String(value ?? '').trim();
@@ -32,6 +43,15 @@ function sendText(res, statusCode, text) {
 		'Access-Control-Allow-Origin': '*',
 	});
 	res.end(String(text));
+}
+
+async function verificarConexion() {
+	const connection = await pool.getConnection();
+	try {
+		await connection.ping();
+	} finally {
+		connection.release();
+	}
 }
 
 function parseBody(req) {
@@ -71,17 +91,6 @@ function parseBody(req) {
 	});
 }
 
-function ordenarAlumnos(lista) {
-	return [...lista].sort((a, b) => {
-		const apellidosA = a.apellidos.localeCompare(b.apellidos, 'es', { sensitivity: 'base' });
-		if (apellidosA !== 0) {
-			return apellidosA;
-		}
-
-		return a.nombres.localeCompare(b.nombres, 'es', { sensitivity: 'base' });
-	});
-}
-
 const server = http.createServer(async (req, res) => {
 	const url = new URL(req.url, `http://${req.headers.host || HOST}`);
 
@@ -105,28 +114,48 @@ const server = http.createServer(async (req, res) => {
 				return;
 			}
 
-			const existe = alumnos.some((registro) => registro.dni === alumno.dni);
+			const [rows] = await pool.execute('SELECT dni FROM alumnos WHERE dni = ?', [alumno.dni]);
+			const existe = rows.length > 0;
 			if (existe) {
 				sendText(res, 200, '0');
 				return;
 			}
 
-			alumnos.push(alumno);
+			await pool.execute(
+				'INSERT INTO alumnos (apellidos, nombres, dni) VALUES (?, ?, ?)',
+				[alumno.apellidos, alumno.nombres, alumno.dni],
+			);
 			sendText(res, 200, '1');
 		} catch (error) {
+			console.error('Error en /grabaAlumnos:', error.message);
 			sendText(res, 400, '0');
 		}
 		return;
 	}
 
 	if (req.method === 'GET' && url.pathname === '/consultarAlumnos') {
-		sendJson(res, 200, ordenarAlumnos(alumnos));
+		try {
+			const [rows] = await pool.execute(
+				'SELECT apellidos, nombres, dni FROM alumnos ORDER BY apellidos ASC, nombres ASC',
+			);
+			sendJson(res, 200, rows);
+		} catch (error) {
+			console.error('Error en /consultarAlumnos:', error.message);
+			sendJson(res, 500, { error: 'Database error' });
+		}
 		return;
 	}
 
 	sendJson(res, 404, { error: 'Not found' });
 });
 
-server.listen(PORT, HOST, () => {
-	console.log(`Backend escuchando en http://${HOST}:${PORT}`);
-});
+try {
+	await verificarConexion();
+	server.listen(PORT, HOST, () => {
+		console.log(`Backend escuchando en http://${HOST}:${PORT}`);
+		console.log(`Base de datos conectada en ${DB_CONFIG.host}:${DB_CONFIG.port}/${DB_CONFIG.database}`);
+	});
+} catch (error) {
+	console.error('No se pudo conectar a la base de datos:', error.message);
+	process.exit(1);
+}
