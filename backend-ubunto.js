@@ -1,8 +1,8 @@
-import http from 'http';
-import { URL } from 'url';
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-dotenv.config()
+const http = require('http');
+const { URL } = require('url');
+const mysql = require('mysql2/promise');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const HOST = process.env.BACKEND_HOST || '0.0.0.0';
 const PORT = 3454;
