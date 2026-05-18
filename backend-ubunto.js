@@ -1,5 +1,5 @@
-import http from 'node:http';
-import { URL } from 'node:url';
+import http from 'http';
+import { URL } from 'url';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config()
