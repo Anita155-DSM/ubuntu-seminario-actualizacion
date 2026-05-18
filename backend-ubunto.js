@@ -1,8 +1,8 @@
-import http from 'node:http';
-import { URL } from 'node:url';
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-dotenv.config()
+const http = require('http');
+const { URL } = require('url');
+const mysql = require('mysql2/promise');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const HOST = process.env.BACKEND_HOST || '0.0.0.0';
 const PORT = 3454;
@@ -20,14 +20,14 @@ const DB_CONFIG = {
 const pool = mysql.createPool(DB_CONFIG);
 
 function normalizeText(value) {
-	return String(value ?? '').trim();
+	return String(value == null ? '' : value).trim();
 }
 
 function getAlumnoPayload(body) {
 	return {
-		dni: normalizeText(body.dni ?? body.DNI ?? body.documento),
-		apellidos: normalizeText(body.apellidos ?? body.apellido ?? body.lastName),
-		nombres: normalizeText(body.nombres ?? body.nombre ?? body.firstName),
+		dni: normalizeText(body.dni != null ? body.dni : (body.DNI != null ? body.DNI : body.documento)),
+		apellidos: normalizeText(body.apellidos != null ? body.apellidos : (body.apellido != null ? body.apellido : body.lastName)),
+		nombres: normalizeText(body.nombres != null ? body.nombres : (body.nombre != null ? body.nombre : body.firstName)),
 	};
 }
 
@@ -151,13 +151,15 @@ const server = http.createServer(async (req, res) => {
 	sendJson(res, 404, { error: 'Not found' });
 });
 
-try {
-	await verificarConexion();
-	server.listen(PORT, HOST, () => {
-		console.log(`Backend escuchando en http://${HOST}:${PORT}`);
-		console.log(`Base de datos conectada en ${DB_CONFIG.host}:${DB_CONFIG.port}/${DB_CONFIG.database}`);
-	});
-} catch (error) {
-	console.error('No se pudo conectar a la base de datos:', error.message);
-	process.exit(1);
-}
+(async () => {
+	try {
+		await verificarConexion();
+		server.listen(PORT, HOST, () => {
+			console.log(`Backend escuchando en http://${HOST}:${PORT}`);
+			console.log(`Base de datos conectada en ${DB_CONFIG.host}:${DB_CONFIG.port}/${DB_CONFIG.database}`);
+		});
+	} catch (error) {
+		console.error('No se pudo conectar a la base de datos:', error.message);
+		process.exit(1);
+	}
+})();
