@@ -1,7 +1,7 @@
-const http = require('http');
-const { URL } = require('url');
-const mysql = require('mysql2/promise');
-const dotenv = require('dotenv');
+import http from 'http';
+import { URL } from 'url';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 dotenv.config();
 
 const HOST = process.env.BACKEND_HOST || '0.0.0.0';
@@ -10,7 +10,7 @@ const DB_CONFIG = {
 	host: process.env.DB_HOST || '10.0.2.15',
 	port: Number(process.env.DB_PORT || 3306),
 	user: process.env.DB_USER || 'usuario_consulta',
-	password: process.env.DB_PASSWORD || '',
+	password: process.env.DB_PASSWORD || '123abc',
 	database: process.env.DB_NAME || 'alumnos',
 	waitForConnections: true,
 	connectionLimit: 10,
