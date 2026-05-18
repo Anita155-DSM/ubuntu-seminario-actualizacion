@@ -20,14 +20,14 @@ const DB_CONFIG = {
 const pool = mysql.createPool(DB_CONFIG);
 
 function normalizeText(value) {
-	return String(value ?? '').trim();
+	return String(value == null ? '' : value).trim();
 }
 
 function getAlumnoPayload(body) {
 	return {
-		dni: normalizeText(body.dni ?? body.DNI ?? body.documento),
-		apellidos: normalizeText(body.apellidos ?? body.apellido ?? body.lastName),
-		nombres: normalizeText(body.nombres ?? body.nombre ?? body.firstName),
+		dni: normalizeText(body.dni != null ? body.dni : (body.DNI != null ? body.DNI : body.documento)),
+		apellidos: normalizeText(body.apellidos != null ? body.apellidos : (body.apellido != null ? body.apellido : body.lastName)),
+		nombres: normalizeText(body.nombres != null ? body.nombres : (body.nombre != null ? body.nombre : body.firstName)),
 	};
 }
 
